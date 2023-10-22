@@ -1,9 +1,6 @@
 import type { NextPage } from "next";
 import { useState } from "react";
-
-function cls(...classnames: string[]) {
-  return classnames.join(" ");
-}
+import { cls } from "@/libs/utils";
 
 const Enter: NextPage = () => {
   const [method, setMethod] = useState<"email" | "phone">("email");
@@ -44,13 +41,14 @@ const Enter: NextPage = () => {
           </div>
         </div>
         <form className="w-[90%] p-4">
-          <label>
+          <label htmlFor="input">
             {method === "email" ? "Email address" : null}
             {method === "phone" ? "Phone number" : null}
           </label>
           <div>
             {method === "email" ? (
               <input
+                id="input"
                 type="email"
                 className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-1-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-400 focus:border-pink-400"
                 required
