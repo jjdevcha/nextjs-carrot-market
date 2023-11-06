@@ -22,6 +22,7 @@ export default function Forms() {
   });
   const onValid = (data: LoginForm) => {
     console.log("I'm valid");
+    reset();
   };
 
   const onInvalid = (errors: FieldErrors) => {
@@ -29,7 +30,7 @@ export default function Forms() {
   };
 
   return (
-    <form onSubmit={handleSubmit(onValid, onInvalid)}>
+    <form className="w-[100%]" onSubmit={handleSubmit(onValid, onInvalid)}>
       <input
         {...register("username", {
           required: "Username is required",

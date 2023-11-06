@@ -1,77 +1,160 @@
 import type { NextPage } from "next";
-import { useState } from "react";
-import { cls } from "@/libs/utils";
+import { useEffect, useState } from "react";
+import { cls } from "@/libs/client/utils";
+import { useForm } from "react-hook-form";
+import Input from "@/components/input";
+import Button from "@/components/button";
+import useMutation from "@/libs/client/useMutation";
+import { useRouter } from "next/router";
+
+interface EnterForm {
+  email?: string;
+  phone?: string;
+}
+
+interface TokenForm {
+  token: string;
+}
+
+interface EnterMutationResult {
+  ok: boolean;
+}
 
 const Enter: NextPage = () => {
+  const [enter, { loading, data, error }] =
+    useMutation<EnterMutationResult>("api/users/enter");
+  const [confirmToken, { loading: tokenLoading, data: tokenData }] =
+    useMutation<EnterMutationResult>("/api/users/confirm");
+  const [submitting, setSubmitting] = useState(false);
+  const { register, handleSubmit, watch, reset } = useForm<EnterForm>();
+  const { register: tokenRegister, handleSubmit: tokenHandleSubmit } =
+    useForm<TokenForm>();
   const [method, setMethod] = useState<"email" | "phone">("email");
 
-  const onEmailClick = () => setMethod("email");
+  const onEmailClick = () => {
+    reset();
+    setMethod("email");
+  };
 
-  const onPhoneClick = () => setMethod("phone");
+  const onPhoneClick = () => {
+    reset();
+    setMethod("phone");
+  };
+
+  const onValid = (data: EnterForm) => {
+    enter(data);
+  };
+  // console.log(watch());
+  console.log(data);
+
+  const onTokenValid = (validForm: TokenForm) => {
+    if (tokenLoading) return;
+    confirmToken(validForm);
+  };
+
+  const router = useRouter();
+  useEffect(() => {
+    if (tokenData?.ok) {
+      router.push("/");
+    }
+  }, [tokenData, router]);
 
   return (
     <div className="mt-16">
       <h3 className="text-2xl font-bold text-center">Enter to Carrot</h3>
       <div>
-        <div className="flex flex-col justify-center items-center">
-          <h5 className="my-8 text-gray-600 font-bold">Enter using:</h5>
-          <div className="grid border-b w-full grid-cols-2 mb-4">
-            <button
-              className={cls(
-                "font-semibold pb-4 border-b-2",
-                method === "email"
-                  ? " border-pink-400 text-pink-400"
-                  : "border-transparent text-gray-400"
-              )}
-              onClick={onEmailClick}
-            >
-              Email
-            </button>
-            <button
-              className={cls(
-                "font-semibold pb-4 border-b-2",
-                method === "phone"
-                  ? " border-pink-400 text-pink-400"
-                  : "border-transparent text-gray-400"
-              )}
-              onClick={onPhoneClick}
-            >
-              Phone
-            </button>
-          </div>
-        </div>
-        <form className="w-[90%] p-4">
-          <label htmlFor="input">
-            {method === "email" ? "Email address" : null}
-            {method === "phone" ? "Phone number" : null}
-          </label>
-          <div>
-            {method === "email" ? (
-              <input
+        {data?.ok ? (
+          <form
+            className="w-full space-y-4"
+            onSubmit={tokenHandleSubmit(onTokenValid)}
+          >
+            <div>
+              <Input
+                name="token"
+                label="Confirmation Token"
+                register={tokenRegister("token", {
+                  required: true,
+                })}
                 id="input"
-                type="email"
-                className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-1-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-400 focus:border-pink-400"
+                type="number"
                 required
+                className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-1-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-400 focus:border-pink-400"
               />
-            ) : null}
-            {method === "phone" ? (
-              <div className="flex rounded-md shadow-sm">
-                <span className="flex items-center justify-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 select-none text-sm">
-                  +82
-                </span>
-                <input
-                  type="number"
-                  className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-l-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-400 focus:border-pink-400"
-                  required
-                />
+            </div>
+            <Button text={loading ? "Loading" : "Confirm Token"} />
+          </form>
+        ) : (
+          <>
+            <div className="flex flex-col justify-center items-center">
+              <h5 className="my-8 text-gray-600 font-bold">Enter using:</h5>
+              <div className="grid border-b w-full grid-cols-2 mb-4">
+                <button
+                  className={cls(
+                    "font-semibold pb-4 border-b-2",
+                    method === "email"
+                      ? " border-pink-400 text-pink-400"
+                      : "border-transparent text-gray-400"
+                  )}
+                  onClick={onEmailClick}
+                >
+                  Email
+                </button>
+                <button
+                  className={cls(
+                    "font-semibold pb-4 border-b-2",
+                    method === "phone"
+                      ? " border-pink-400 text-pink-400"
+                      : "border-transparent text-gray-400"
+                  )}
+                  onClick={onPhoneClick}
+                >
+                  Phone
+                </button>
               </div>
-            ) : null}
-          </div>
-          <button className="mt-5 bg-pink-400 hover:bg-pink-500 text-white py-2 px-4 border border-transparent rounded-md shadow-sm texrt-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-pink-400 focus:outline-none">
-            {method === "email" ? "Get login link" : null}
-            {method === "phone" ? "Get one-time password" : null}
-          </button>
-        </form>
+            </div>
+            <form className="w-full space-y-4" onSubmit={handleSubmit(onValid)}>
+              <div>
+                {method === "email" ? (
+                  <Input
+                    name="email"
+                    label="email"
+                    register={register("email", {
+                      required: true,
+                    })}
+                    id="input"
+                    type="email"
+                    required
+                    className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-1-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-400 focus:border-pink-400"
+                  />
+                ) : null}
+                {method === "phone" ? (
+                  <div className="flex rounded-md shadow-sm w-full">
+                    <Input
+                      register={register("phone")}
+                      name="phone"
+                      label="phone"
+                      kind="phone"
+                      type="number"
+                      required
+                      className="appearance-none w-full px-3 py-2 border border-gray-300 rounded-md rounded-l-none shadow-sm placeholder-gray-400 focus:outline-none focus:ring-pink-400 focus:border-pink-400"
+                    />
+                  </div>
+                ) : null}
+              </div>
+              {method === "email" ? (
+                <Button
+                  text={"Get login link"}
+                  className="mt-5 bg-pink-400 hover:bg-pink-500 text-white py-2 px-4 border border-transparent rounded-md shadow-sm texrt-sm font-medium focus:ring-2 focus:ring-offset-2 focus:ring-pink-400 focus:outline-none"
+                />
+              ) : null}
+              {method === "phone" ? (
+                <Button
+                  text={submitting ? "Loading" : "Get one-time password"}
+                />
+              ) : null}
+            </form>
+          </>
+        )}
         <div className="mt-8">
           <div className="relative">
             <div className="absolute w-full border-t border-gray-300" />

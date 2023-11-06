@@ -1,8 +1,11 @@
 import type { NextPage } from "next";
 import Layout from "@/components/layout";
 import Link from "next/link";
+import useUser from "@/libs/client/useUser";
 
 const Home: NextPage = () => {
+  const { user, isLoading } = useUser();
+  console.log(user);
   return (
     <Layout title="Home" hasTabBar>
       <div className="flex flex-col">
