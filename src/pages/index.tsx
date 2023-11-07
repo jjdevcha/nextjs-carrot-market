@@ -2,6 +2,7 @@ import type { NextPage } from "next";
 import Layout from "@/components/layout";
 import Link from "next/link";
 import useUser from "@/libs/client/useUser";
+import FloatingButton from "@/components/floating-button";
 
 const Home: NextPage = () => {
   const { user, isLoading } = useUser();
@@ -59,7 +60,7 @@ const Home: NextPage = () => {
             </div>
           </div>
         ))}
-        <button className="text-white fixed bottom-20 right-20 rounded-full bg-green-500 p-4 hover:bg-green-600 transition-colors shadow-xl">
+        <FloatingButton href="/products/upload">
           <svg
             className="h-6 w-6"
             xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +76,7 @@ const Home: NextPage = () => {
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-        </button>
+        </FloatingButton>
       </div>
     </Layout>
   );
